@@ -8,6 +8,13 @@ import torch
 import os
 import random
 
+snli_path = '/path/to/your/snli_1.0_train.jsonl'
+mnli_path = '/path/to/your/multinli_1.0_train.jsonl'
+snli_val_path = '/path/to/your/snli_1.0_dev.jsonl'
+mnli_val_path = '/path/to/your/multinli_1.0_dev_matched.jsonl'
+nq_train_claim_path = '/path/to/your/nq-train-with-claim.json'
+nq_dev_claim_path = '/path/to/your/nq-dev-with-claim.json'
+
 class DataCollatorForEntailment(DataCollatorForLanguageModeling):
     def __init__(self, tokenizer, mlm=True, mlm_probability=0.8, pad_to_multiple_of=None):
         super().__init__(tokenizer, 
@@ -128,25 +135,22 @@ class EntailmentDataset:
 
 def main():
     to_predict = 'hypothesis'
+    mlm_probability = 0.2
 
-    if to_predict == 'hypothesis':
-        mlm_probability = 0.2
-    else:
-        mlm_probability = 0.2 # 0.8 is for predicting hypothesis
     model = BertForMaskedLM.from_pretrained('bert-base-uncased')
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     print('...model and tokenizer loaded')
     # load the entailment dataset. premise, hypothesis
     train_dataset = EntailmentDataset(
-        nq_path='/data/dailu/dpr/downloads/data/retriever/nq-train-with-claim.json',
-        snli_path='/data/dailu/dpr/snli_1.0/snli_1.0_train.jsonl',
-        mnli_path = "/data/dailu/dpr/multinli_1.0/multinli_1.0_train.jsonl",
+        nq_path=nq_train_claim_path,
+        snli_path=snli_path,
+        mnli_path = mnli_path,
         tokenizer=tokenizer,
         to_predict=to_predict)
     validation_dataset = EntailmentDataset(
-        nq_path='/data/dailu/dpr/downloads/data/retriever/nq-dev-with-claim.json', 
-        snli_path='/data/dailu/dpr/snli_1.0/snli_1.0_dev.jsonl',
-        mnli_path='/data/dailu/dpr/multinli_1.0/multinli_1.0_dev_matched.jsonl',
+        nq_path=nq_dev_claim_path, 
+        snli_path=snli_val_path,
+        mnli_path=mnli_val_path,
         tokenizer=tokenizer,
         to_predict=to_predict)
     print('...dataset loaded')
@@ -154,7 +158,7 @@ def main():
     data_collator = DataCollatorForEntailment(tokenizer, mlm=True, mlm_probability=mlm_probability) # 这里的mlm_probability是指hypothesis的mask概率，因为premise的不会被替换成mask
 
     training_args = TrainingArguments(
-        output_dir=f"./bert_finetuned_mlm_snli_ablation_{mlm_probability}_{to_predict}",
+        output_dir=f"./entail_finetuned_models",
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         warmup_steps=100,
@@ -166,7 +170,7 @@ def main():
         remove_unused_columns=False,
         logging_steps=10,
         report_to="wandb",
-        run_name=f"entailment_finetuning_snli_mnli_ablation_{mlm_probability}_{to_predict}"
+        run_name=f"entailment_finetuning_bert_hypothesis"
     )
 
     trainer = Trainer(

@@ -76,4 +76,21 @@ You may adjust the gpu settings in the bash file to fit your own needs.
 
 ## Training
 
-To be added
+As described in our paper, the entailment tuning stage is inserted before the supervised training stage, such as DPR. 
+In entailment tuning, we finetune PLM to predict hypothesis from premise. We first convert questions to claim format, which function as the hypothesis part to be predict. The converted [nq-train](https://huggingface.co/datasets/stellaludai/nq-train-with-claim/tree/main) and [nq-dev](https://huggingface.co/datasets/stellaludai/nq-dev-with-claim/tree/main) file can be downloaded in our huggingface repo as well. 
+
+Then, you can replace the filepaths in entail_tuning.py and run with following command:
+
+```bash
+num_gpus=8
+python -m torch.distributed.run --nproc_per_node num_gpus --master_port 28888 entail_tuning.py
+```
+
+After entail_tuning, you will get checkpoints under the `entail_finetuned_models` folder.
+
+Lastly, you can conduct the normal supervised training stage such as dpr with following command:
+
+```bash
+# Replace the data file path in the below file before running.
+./retriever_train_nq.sh
+```
