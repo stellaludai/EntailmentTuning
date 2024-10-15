@@ -158,7 +158,7 @@ def main():
     data_collator = DataCollatorForEntailment(tokenizer, mlm=True, mlm_probability=mlm_probability) # 这里的mlm_probability是指hypothesis的mask概率，因为premise的不会被替换成mask
 
     training_args = TrainingArguments(
-        output_dir=f"./entail_finetuned_models",
+        output_dir=f"/home/entail_finetuned_models",
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         warmup_steps=100,

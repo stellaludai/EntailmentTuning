@@ -15,7 +15,7 @@ nq_dev:
 
 trivia_test:
   _target_: dpr.data.retriever_data.CsvQASrc
-  file: /data/dailu/dpr/triviaqa/trivia-verified-dev.csv
+  file: /path/to/your/trivia-verified-dev.csv
 
 trivia_train:
   _target_: dpr.data.retriever_data.CsvQASrc
